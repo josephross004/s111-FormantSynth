@@ -37,10 +37,9 @@ try:
     from scipy.signal import resample_poly
     from scipy.io.wavfile import write
     import simpleaudio as sa
-except ImportError:
-    print("Missing one or more required modules.")
-    print("Please make sure that math, numpy, scipy, and simpleaudio are installed.")
     import sys
+except ImportError:
+    print("Missing required modules. Make sure that math, numpy, scipy, matplotlib, and simpleaudio are installed.")
     sys.exit()
 
 def klatt_make(params=None):
