@@ -1104,9 +1104,9 @@ if __name__ == '__main__':
     F0[:] = np.linspace(120, 70, N)  # a falling F0 contour
 
     # FF
-    target1 = np.r_[300, 1000, 2600]  # /b/
-    #target2 = np.r_[280, 2250, 2750]  # /i/
-    target2 = np.r_[750, 1300, 2600]  # /A/
+    target1 = np.r_[100, 1999, 1001]  # /b/
+    target2 = np.r_[280, 2250, 2750]  # /i/
+    #target2 = np.r_[750, 1300, 2600]  # /A/
     if 0:  # linear transition
         xfade = np.linspace(1, 0, N)
     else:  # exponential transition
