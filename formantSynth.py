@@ -9,41 +9,33 @@ Author: Joey Ross
 '''
 
 '''
-NOTE ABOUT DOCSTRINGS
-----------------------------------
-I prefer to use Javadoc when I can. However, Python doesn't have an equivalent (to my knowledge).
-So I use some aspects of Javadoc in my comments to describe parameters and return values.
-I know it doesn't do anything when compiled, but it's more what I'm used to when writing really large object-oriented programs.
-Thank you for understanding my preference.
-'''
-
-'''
 CLASSES
 Param - Object containing parameters for synthesizer
 Synth - synthesizer object, top-level
 Section - section-level object, used for groups of parts of the synthesizer - cascade filters, voicing, etc - multiple Components in a row, essentially.
 Component - Individual object for use in synthesizer, filter, amp, etc.
-TODO: Voice -
-TODO: Noise - 
-TODO: Cascade -
-TODO: Parallel -
-TODO: Radiation -
-TODO: Output -
-TODO: Buffer -
-TODO: Resonator -
-TODO: Impulse -
-TODO: Mixer -
-TODO: Amplifier -
-TODO: LowPass -
-TODO: Normalizer -
-TODO: NoiseGen -
-TODO: Switch -
+Cascade -
+Voice -
+Noise - 
+Parallel -
+Radiation -
+Output -
+Buffer -
+Resonator -
+Impulse -
+Mixer -
+Amplifier -
+LowPass -
+Normalizer -
+NoiseGen -
+Switch -
 '''
 
 import math
 import numpy
 import simpleaudio
 import sys
+import tkinter as tk
 from scipy.signal import resample_poly
 from scipy.io.wavfile import write
 
@@ -991,73 +983,117 @@ class Switch(Component):
         self.output.append(numpy.zeros(self.mast.parameters["N_SAMP"]))
         self.output.append(numpy.zeros(self.mast.parameters["N_SAMP"]))
 
-###TESTING...###
-#TODO: Delete this! Make GUI.
+import time
+
+def playsound(sound_number=0):
+        s = make(Param(DUR=0.5))
+        N = s.parameters["N_SAMP"]
+        F0 = s.parameters["F0"]
+        FF = numpy.asarray(s.parameters["FF"]).T
+        AV = s.parameters["AV"]
+        AA = s.parameters['AA']
+
+        # amplitude / voicing
+        AV[:] = numpy.linspace(1, 0, N) ** 0.1 * 60
+        if 1:  # unvoiced consonant
+            Nv1 = 800  # start of unvoiced-voiced transition
+            Nv2 = 1000  # end of unvoiced-voiced transition
+            AV[:Nv1] = 0
+            AA[:Nv1] = 55
+            AV[Nv1:Nv2] = numpy.linspace(0, AV[Nv2], Nv2-Nv1)
+            AA[Nv1:Nv2] = numpy.linspace(55, 0, Nv2-Nv1)
+
+
+        # F0
+        F0[:] = numpy.linspace(120, 70, N)  # a falling F0 contour
+        # FF
+        ipa_i = numpy.r_[280, 2250, 2750]  # /i/
+        ipa_u = numpy.r_[300, 870, 2250]  # /u/
+        ipa_ʌ = numpy.r_[640, 1200, 2400] #/^/
+        ipa_æ = numpy.r_[660,1700,2400] #/æ/
+        ipa_e = numpy.r_[530,1850,2500] #/e/
+        ipa_ɪ = numpy.r_[400,2000,2550]
+        ipa_ɒ = numpy.r_[700,760]
+        ipa_ʊ = numpy.r_[400,1100]
+        ipa_eee = numpy.r_[500,1500,2500]
+        if 0:  # linear transition
+            xfade = numpy.linspace(1, 0, N)
+        else:  # exponential transition
+            n = numpy.arange(N)
+            scaler = 20
+            xfade = 2 / (1 + numpy.exp(scaler * n / (N-1)))
+
+        if sound_number==1:
+            FF[:,:3] = ipa_i
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        elif sound_number==2:
+            FF[:,:3] = ipa_u
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        elif sound_number==3:
+            FF[:,:3] = ipa_ʌ
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        elif sound_number==4:
+            FF[:,:3] = ipa_æ
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        elif sound_number==5:
+            FF[:,:3] = ipa_e
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        elif sound_number==6:
+            FF[:,:3] = ipa_ɪ
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        elif sound_number==7:
+            FF[:,:2] = ipa_ɒ
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        elif sound_number==8:
+            FF[:,:2] = ipa_ʊ
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        elif sound_number==9:
+            FF[:,:3] = ipa_eee
+            s.parameters["FF"] = FF.T
+            s.run()
+            s.play()
+        time.sleep(0.75)
+
 if __name__ == '__main__':
-    s = make(Param(DUR=0.5)) # Creates a Klatt synthesizer w/ default settings
-    # see also: http://www.fon.hum.uva.nl/david/ma_ssp/doc/Klatt-1980-JAS000971.pdf
-    N = s.parameters["N_SAMP"]
-    F0 = s.parameters["F0"]
-    FF = numpy.asarray(s.parameters["FF"]).T
-    AV = s.parameters["AV"]
-    AA = s.parameters['AA']
-
-    # amplitude / voicing
-    AV[:] = numpy.linspace(1, 0, N) ** 0.1 * 60
-    if 1:  # unvoiced consonant
-        Nv1 = 800  # start of unvoiced-voiced transition
-        Nv2 = 1000  # end of unvoiced-voiced transition
-        AV[:Nv1] = 0
-        AA[:Nv1] = 55
-        AV[Nv1:Nv2] = numpy.linspace(0, AV[Nv2], Nv2-Nv1)
-        AA[Nv1:Nv2] = numpy.linspace(55, 0, Nv2-Nv1)
-
-
-    # F0
-    F0[:] = numpy.linspace(120, 70, N)  # a falling F0 contour
-
-    # FF
-    target1 = numpy.r_[300, 1000, 2600]  # /b/
-    target2 = numpy.r_[280, 2250, 2750]  # /i/
-    target3 = numpy.r_[750, 1300, 2600]  # /A/
-    #target2 = numpy.r_[300,870,2250] #/o/
-    if 0:  # linear transition
-        xfade = numpy.linspace(1, 0, N)
-    else:  # exponential transition
-        n = numpy.arange(N)
-        scaler = 20
-        xfade = 2 / (1 + numpy.exp(scaler * n / (N-1)))
-    FF[:,:3] = numpy.outer(xfade, target1) + numpy.outer((1 - xfade), target2)
-    FF[:,:3] = numpy.outer(xfade, target2) + numpy.outer((1 - xfade), target1)
-    # synthesize
-    s.parameters["FF"] = FF.T
-    s.run()
-    s.play()
-    s.save('synth.wav')
-
-    # visualize
-    import time
-    time.sleep(1.5)
     #t = numpy.arange(len(s.out)) / s.parameters['FS']
+    window=tk.Tk()
+    # add widgets here
+    ee=tk.Button(window, text="i", fg='blue', command=lambda: playsound(1))
+    ee.place(x=85, y=100)
+    oo=tk.Button(window, text="u", fg='blue', command=lambda: playsound(2))
+    oo.place(x=100, y=100)
+    ʌ=tk.Button(window, text="ʌ", fg='blue', command=lambda: playsound(3))
+    ʌ.place(x=120, y=100)
+    æ=tk.Button(window, text="æ", fg='blue', command=lambda: playsound(4))
+    æ.place(x=138, y=100)
+    e=tk.Button(window, text="e", fg='blue', command=lambda: playsound(5))
+    e.place(x=160, y=100)
+    ɪ=tk.Button(window, text="ɪ", fg='blue', command=lambda: playsound(6))
+    ɪ.place(x=180, y=100)
+    ɒ=tk.Button(window, text="ɒ", fg='blue', command=lambda: playsound(7))
+    ɒ.place(x=195, y=100)
+    ʊ=tk.Button(window, text="ʊ", fg='blue', command=lambda: playsound(8))
+    ʊ.place(x=215, y=100)
+    eee=tk.Button(window, text="eee", fg='blue', command=lambda: playsound(9))
+    eee.place(x=100, y=150)
+    window.title('Phonemes')
+    window.geometry("300x200+10+20")
+    window.mainloop()
+
     
-    '''
-    ax = plt.subplot(211)
-    plt.plot(t, s.out)
-    plt.axis(ymin=-1, ymax=1)
-    
-    plt.ylabel('amplitude')
-    plt.twinx()
-    plt.plot(t, AV, 'r', label='AV')
-    plt.plot(t, AA, 'g', label='AH')
-    plt.legend()
-    
-    plt.subplot(212, sharex=ax)
-    plt.specgram(s.out, Fs=s.parameters['FS'])
-    plt.plot(t, FF, alpha=0.5)
-    plt.xlabel('time [s]')
-    plt.ylabel('frequency [Hz]')
-    
-    plt.savefig('figure.pdf')
-    
-    plt.show()
-    '''
